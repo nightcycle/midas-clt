@@ -1,0 +1,29 @@
+{
+	"Duration": "integer",
+	"IsStudio": "boolean",
+	"Version": {
+		"Build": "integer",
+		"Major": "integer",
+		"Minor": "integer"
+	},
+	"Index": {
+		"Total": "integer",
+		"Event": "integer"
+	},
+	"Id": {
+		"Place": "string",
+		"User": "string",
+		"Session": "string"
+	},
+	"Map": ["Ghosttown", "Dunes", "Overgrowth", "Military Base", "Booth", "Potato", "Sandwich"],
+	"Gameplay": {
+		"Weapons": ["Gun", "Sword", "Laser"]
+	},
+	"Cars": {
+		"Ferrari": true,
+		"Truck": true,
+		"Bike": true,
+		"Chevy": true,
+		"Ford": true
+	}
+}

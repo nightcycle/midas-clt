@@ -1,0 +1,80 @@
+{
+    "marker": "~",
+    "patterns": [
+        "Ghosttown",
+        "Military Base",
+        "IsStudio",
+        "Gun",
+        "Duration",
+        "Laser",
+        "Id",
+        "Booth",
+        "Version",
+        "Map",
+        "Major",
+        "Session",
+        "Build",
+        "Index",
+        "User",
+        "Sandwich",
+        "Cars",
+        "Weapons",
+        "Place",
+        "Event",
+        "Total",
+        "Overgrowth",
+        "Minor",
+        "Dunes",
+        "Sword",
+        "Gameplay",
+        "Potato"
+    ],
+    "dictionary": {
+        "properties": {
+            "Index": "~0",
+            "IsStudio": "~%",
+            "Gameplay": "~=",
+            "Build": "~/",
+            "Event": "~6",
+            "Cars": "~3",
+            "Minor": "~9",
+            "User": "~1",
+            "Map": "~,",
+            "Total": "~7",
+            "Duration": "~'",
+            "Session": "~.",
+            "Place": "~5",
+            "Weapons": "~4",
+            "Major": "~-",
+            "Id": "~)",
+            "Version": "~+"
+        },
+        "values": {
+            "Map": {
+                "Ghosttown": "~#",
+                "Dunes": "~;",
+                "Overgrowth": "~8",
+                "Military Base": "~$",
+                "Booth": "~*",
+                "Potato": "~>",
+                "Sandwich": "~2"
+            },
+            "Gameplay": {
+                "Weapons": {
+                    "Gun": "~&",
+                    "Sword": "~<",
+                    "Laser": "~("
+                }
+            }
+        }
+    },
+    "arrays": {
+        "Cars": [
+            "Ferrari",
+            "Truck",
+            "Bike",
+            "Chevy",
+            "Ford"
+        ]
+    }
+}
