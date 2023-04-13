@@ -20,10 +20,10 @@
 		"Weapons": ["Gun", "Sword", "Laser"]
 	},
 	"Cars": {
-		"Ferrari": true,
-		"Truck": true,
-		"Bike": true,
-		"Chevy": true,
-		"Ford": true
+		"Ferrari": "boolean",
+		"Truck": "boolean",
+		"Bike": "boolean",
+		"Chevy": "boolean",
+		"Ford": "boolean"
 	}
 }

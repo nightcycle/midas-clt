@@ -16,6 +16,7 @@ def main():
 	if sys.argv[1] == INIT_TAG:
 		config.init_file()
 	elif sys.argv[1] == BUILD_TAG: 
+		treecode.set_tree_encoding()
 		build.main()
 
 main()			

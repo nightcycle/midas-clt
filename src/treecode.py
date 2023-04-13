@@ -96,13 +96,14 @@ def set_tree_encoding():
 	for path, value in dpath.search(tree_structure, '**', yielded=True):
 		# filter out list paths
 		path_keys = path.split("/")
-		final_key = path_keys[len(path_keys)-1]
 		is_num = False
-		try:
-			int(final_key)
-			is_num = True
-		except:
-			is_num = False
+		for key in path_keys:
+			final_key = path_keys[len(path_keys)-1]
+			try:
+				int(final_key)
+				is_num = True
+			except:
+				is_num = False
 
 		# add pattern
 		if not is_num and  type(value) == str or type(value) == list:
@@ -119,7 +120,7 @@ def set_tree_encoding():
 			property_paths.append(path)
 			is_all_boolean = True
 			for k, v in value.items():
-				if type(v) != bool:
+				if v != "boolean":
 					is_all_boolean = False
 			
 			if is_all_boolean:
@@ -130,7 +131,7 @@ def set_tree_encoding():
 							old_v = old_binary_paths[path][i]
 							assert old_v == v, f"binary sequence is desynced at entry {i} at {path}"		
 
-				assert len(current_values) >= len(old_binary_paths[path]), f"new binary sequence at {path} is shorter, don't do this"
+					assert len(current_values) >= len(old_binary_paths[path]), f"new binary sequence at {path} is shorter, don't do this"
 
 				binary_arrays[path] = current_values
 
@@ -170,7 +171,6 @@ def set_tree_encoding():
 	array_registry = {}
 	for path, array in binary_arrays.items():
 		dpath.new(array_registry, path, array)
-
 
 	# assemble starting encoding tree
 	encoding_tree: EncodingTree = {
