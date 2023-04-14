@@ -1,10 +1,11 @@
-import config
-import dpath
+
 import copy
 import math
 import json
+import dpath
 import os
-from config import TrackerType
+import src.config as config
+from src.config import TrackerType
 from typing import TypedDict, Literal, Union, Any
 
 TREE_ENCODING_PATH = "midas-tree-encoding.lock"

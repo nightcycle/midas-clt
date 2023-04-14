@@ -72,7 +72,6 @@ class VersionConfig(TypedDict):
 	hotfix: int | None
 
 class MidasConfig(TypedDict):
-	download: bool
 	encoding_marker: str
 	version: VersionConfig
 	playfab: PlayFabConfig
@@ -115,7 +114,6 @@ CONFIG_TOML_PATH = "midas.yaml"
 AUTH_CONFIG_TOML_PATH = "midas-auth.lock"
 
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
-	"download": True,
 	"encoding_marker": "~",
 	"playfab": {
 		"download_start_date": "1970-1-01 00:00:00.000000",
