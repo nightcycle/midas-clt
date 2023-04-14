@@ -2,7 +2,6 @@ import toml
 import yaml
 import os
 import re
-import gitignore_parser
 from typing import TypedDict, Literal, Union, Any
 
 TrackerType = Literal["boolean", "integer", "double", "float", "string"]

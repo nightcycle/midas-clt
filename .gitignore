@@ -140,3 +140,4 @@ out/**
 foreman.toml
 Packages
 sourcemap.json
+midas-tree-encoding.lock
