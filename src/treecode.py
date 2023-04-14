@@ -8,7 +8,7 @@ import os
 from config import TrackerType
 from typing import TypedDict, Literal, Union, Any
 
-TREE_ENCODING_PATH = "midas-tree-encoding.json"
+TREE_ENCODING_PATH = "midas-tree-encoding.lock"
 ASCII_FLOOR = 33
 ASCII_CEILING = 91
 BAD_ASCII_CHARACTERS = [":", "\"", "\\"]
@@ -66,7 +66,7 @@ def get_code(index: int, marker: str) -> str:
 
 def set_tree_encoding():
 	midas_config = config.get_midas_config()
-	tree_structure = config.get_midas_tree()
+	tree_structure = midas_config["state_tree"]
 
 	# read prior tree
 	old_patterns: list[str] = []

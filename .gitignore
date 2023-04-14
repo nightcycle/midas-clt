@@ -131,7 +131,12 @@ dmypy.json
 .pyre/
 
 .vscode
-midas.toml
-midas-auth.toml
-midas-tree-encoding.json
-midas-tree.json
+midas.yaml
+midas-auth.lock
+wally.toml
+out
+out/**
+*.project.json
+foreman.toml
+Packages
+sourcemap.json

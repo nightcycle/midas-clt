@@ -1,7 +1,8 @@
 import toml
-import json
+import yaml
 import os
 import re
+import gitignore_parser
 from typing import TypedDict, Literal, Union, Any
 
 TrackerType = Literal["boolean", "integer", "double", "float", "string"]
@@ -28,8 +29,11 @@ class BaseStateTree(TypedDict):
 	Id: IdentificationData
 
 class BuildConfig(TypedDict):
+	roblox_wally_package_folder_path: str
 	server_boot_script_path: str
 	shared_state_tree_path: str
+	client_boot_script_path: str
+	midas_py_module_out_path: str
 
 class RecorderTargetConfig(TypedDict):
 	place_id: int
@@ -45,9 +49,6 @@ class PlayFabConfig(TypedDict):
 	download_window: int
 	user_limit: int
 
-class PythonConfig(TypedDict):
-	midas_module_out_path: str
-
 class TemplateConfig(TypedDict):
 	join: bool
 	chat: bool
@@ -61,15 +62,26 @@ class TemplateConfig(TypedDict):
 	client_performance: bool
 	group: dict[str, int]
 
+class ProductConfig(TypedDict):
+	gamepasses: dict[str, int]
+	developer_products: dict[str, int]
+
+class VersionConfig(TypedDict):
+	major: int
+	minor: int
+	patch: int
+	hotfix: int | None
+
 class MidasConfig(TypedDict):
 	download: bool
 	encoding_marker: str
-	python: PythonConfig
+	version: VersionConfig
 	playfab: PlayFabConfig
 	recorder: RecorderConfig
 	build: BuildConfig
-	gamepasses: dict[str, int]
+	products: ProductConfig
 	templates: TemplateConfig
+	state_tree: Union[BaseStateTree, dict]
 
 class AADConfig(TypedDict):
 	client_id: str
@@ -88,35 +100,24 @@ class AuthConfig(TypedDict):
 	aad: AADConfig
 	roblox: RobloxAuthConfig
 
-CONFIG_TOML_PATH = "midas.toml"
-MIDAS_TREE_PATH = "midas-tree.json"
-AUTH_CONFIG_TOML_PATH = "midas-auth.toml"
+def add_to_git_ignore(path: str, git_ignore_path=".gitignore"):
+	# Create a Path object for the .gitignore file
+	
+	# Read the existing contents of the .gitignore file
+	contents = open(git_ignore_path, "r").read()
+	
+	lines = contents.split("\n")
+	if not path in lines:
+		contents += "\n" + path
+		open(git_ignore_path, "w").write(contents)
 
-DEFAULT_TREE: Union[BaseStateTree, dict] = {
-	"Duration": "integer",
-	"IsStudio": "boolean",
-	"Version": {
-		"Build": "integer",
-		"Major": "integer",
-		"Minor": "integer",
-	},
-	"Index": {
-		"Total": "integer",
-		"Event": "integer",
-	},
-	"Id": {
-		"Place": "string",
-		"User": "string",
-		"Session": "string",
-	}
-}
+
+CONFIG_TOML_PATH = "midas.yaml"
+AUTH_CONFIG_TOML_PATH = "midas-auth.lock"
 
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 	"download": True,
 	"encoding_marker": "~",
-	"python": {
-		"midas_module_out_path": "path/to/script"
-	},
 	"playfab": {
 		"download_start_date": "1970-1-01 00:00:00.000000",
 		"download_window": 30,
@@ -143,11 +144,36 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"client_performance": False,
 		"group": {},
 	},
-	"gamepasses": {},
-	"build": {
-		"server_boot_script_path": "src/Server/Analytics.luau",
-		"shared_state_tree_path": "src/Shared/MidasTree.luau"
+	"products": {
+		"gamepasses": {},
+		"developer_products": {}
 	},
+	"build": {
+		"roblox_wally_package_folder_path": "game/ReplicatedStorage/Packages",
+		"server_boot_script_path": "src/Server/Analytics.server.luau",
+		"shared_state_tree_path": "src/Shared/MidasTree.luau",
+		"client_boot_script_path": "src/Client/Analytics.client.luau",
+		"midas_py_module_out_path": "path/to/script"
+	},
+	"state_tree": {
+		"Duration": "integer",
+		"IsStudio": "boolean",
+		"Version": {
+			"Build": "integer",
+			"Major": "integer",
+			"Minor": "integer",
+			"Patch": "integer",
+		},
+		"Index": {
+			"Total": "integer",
+			"Event": "integer",
+		},
+		"Id": {
+			"Place": "string",
+			"User": "string",
+			"Session": "string",
+		}
+	}
 }
 
 DEFAULT_AUTH_CONFIG_TEMPLATE: AuthConfig = {
@@ -165,37 +191,41 @@ DEFAULT_AUTH_CONFIG_TEMPLATE: AuthConfig = {
 	}
 }
 
+def remove_config():
+	if os.path.exists(CONFIG_TOML_PATH):
+		os.remove(CONFIG_TOML_PATH)
+
+	if os.path.exists(AUTH_CONFIG_TOML_PATH):
+		os.remove(AUTH_CONFIG_TOML_PATH)
+
 def init_file():
 	assert not os.path.exists(CONFIG_TOML_PATH), f"{CONFIG_TOML_PATH} file already exists, deleting it could break encoding"
 
 	config_file = open(CONFIG_TOML_PATH, "w")
-	config_file.write(toml.dumps(DEFAULT_CONFIG_TEMPLATE))
+	config_file.write(yaml.safe_dump(DEFAULT_CONFIG_TEMPLATE))
 	config_file.close()
 
 	auth_file = open(AUTH_CONFIG_TOML_PATH, "w")
 	auth_file.write(toml.dumps(DEFAULT_AUTH_CONFIG_TEMPLATE))
 	auth_file.close()
 
-	tree_file = open(MIDAS_TREE_PATH, "w")
-	tree_file.write(json.dumps(DEFAULT_TREE, indent=5))
-	tree_file.close()
+	add_to_git_ignore(AUTH_CONFIG_TOML_PATH)
 
-def get_midas_tree() -> Union[BaseStateTree, dict]:
-	if not os.path.exists(MIDAS_TREE_PATH):
-		print("no midas-tree.json, have you initialized?")
+def get_midas_config() -> MidasConfig:
+	if not os.path.exists(CONFIG_TOML_PATH):
+		print("no midas.toml, have you initialized?")
 
-	tree: Any = json.loads(open(MIDAS_TREE_PATH, "r").read())
-
-	midas_config = get_midas_config()
-
+	untyped_config: Any = yaml.safe_load(open(CONFIG_TOML_PATH, "r").read())
+	midas_config: MidasConfig = untyped_config
+	
 	if midas_config["templates"]["chat"]:
-		tree["Chat"] = {
+		midas_config["state_tree"]["Chat"] = {
 			"LastMessage": "string",
 			"Count": "integer",
 		}
 
 	if midas_config["templates"]["character"]:
-		tree["Character"] = {
+		midas_config["state_tree"]["Character"] = {
 			"IsDead": "boolean",
 			"Height": "double",
 			"Mass": "double",
@@ -231,7 +261,7 @@ def get_midas_tree() -> Union[BaseStateTree, dict]:
 		}
 
 	if midas_config["templates"]["population"]:
-		tree["Population"] = {
+		midas_config["state_tree"]["Population"] = {
 			"Total": "integer",
 			"Team": "integer",
 			"PeakFriends": "integer",
@@ -240,10 +270,10 @@ def get_midas_tree() -> Union[BaseStateTree, dict]:
 		}
 
 	if midas_config["templates"]["server_performance"]:
-		if not "Performance" in tree:
-			tree["Performance"] = {}
+		if not "Performance" in midas_config["state_tree"]:
+			midas_config["state_tree"]["Performance"] = {}
 
-		tree["Performance"]["Server"] = {
+		midas_config["state_tree"]["Performance"]["Server"] = {
 			"EventsPerMinute": "integer",
 			"Ping": "integer",
 			"ServerTime": "integer",
@@ -287,26 +317,41 @@ def get_midas_tree() -> Union[BaseStateTree, dict]:
 		}
 
 	if midas_config["templates"]["market"]:
-		tree["Market"] = {
+		midas_config["state_tree"]["Market"] = {
 			"Spending": {
 				"Gamepass": "integer",
 				"Product": "integer",
 				"Total": "integer",
 			},
 			"Gamepasses": {},
+			"Purchase": {
+				"Product": {
+					"Name": [],
+					"Price": "integer"
+				},
+				"Gamepass": {
+					"Name": [],
+					"Price": "integer"
+				}
+			},
 		}
-		for gamepass_name in midas_config["gamepasses"]:
+		for gamepass_name in midas_config["products"]["gamepasses"]:
 			formatted_pass_name = re.sub(r'\s', '', gamepass_name)
-			tree["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
+			midas_config["state_tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
+			midas_config["state_tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
+
+		for product_name in midas_config["products"]["developer_products"]:
+			formatted_product_name = re.sub(r'\s', '', product_name)
+			midas_config["state_tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
 
 	if len(list(midas_config["templates"]["group"].keys())) > 0:
-		tree["Groups"] = {}
+		midas_config["state_tree"]["Groups"] = {}
 		for group_name, group_id in (midas_config["templates"]["group"]).items():
 			formatted_group_name = re.sub(r'\s', '', group_name)
-			tree["Groups"][formatted_group_name] = "boolean"
+			midas_config["state_tree"]["Groups"][formatted_group_name] = "boolean"
 
 	if midas_config["templates"]["demographics"]:
-		tree["Demographics"] = {
+		midas_config["state_tree"]["Demographics"] = {
 			"AccountAge": "integer",
 			"RobloxLangugage": "string",
 			"SystemLanguage": "string",
@@ -323,26 +368,30 @@ def get_midas_tree() -> Union[BaseStateTree, dict]:
 		}
 
 	if midas_config["templates"]["client_performance"]:
-		if not "Performance" in tree:
-			tree["Performance"] = {}
+		if not "Performance" in midas_config["state_tree"]:
+			midas_config["state_tree"]["Performance"] = {}
 
-		tree["Performance"]["Client"] = {
+		midas_config["state_tree"]["Performance"]["Client"] = {
 			"Ping": "integer",
 			"FPS": "integer",
 		}
 
-	return tree
 
-def get_midas_config() -> MidasConfig:
-	if not os.path.exists(CONFIG_TOML_PATH):
-		print("no midas.toml, have you initialized?")
-
-	config: Any = toml.loads(open(CONFIG_TOML_PATH, "r").read())
-	return config
+	return midas_config
 
 def get_auth_config() -> AuthConfig:
 	if not os.path.exists(AUTH_CONFIG_TOML_PATH):
 		print("no midas-auth.toml, have you initialized?")
 
 	config: Any = toml.loads(open(AUTH_CONFIG_TOML_PATH, "r").read())
+	return config
+
+def set_auth_config(auth_config: AuthConfig):
+	auth_file = open(AUTH_CONFIG_TOML_PATH, "w")
+	auth_file.write(toml.dumps(auth_config))
+	auth_file.close()
+
+def set_config_by_console(config: dict[str, str]) -> dict[str, str]:
+	for key in config:
+		config[key] = input(f"{key}: ")
 	return config
