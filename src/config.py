@@ -3,6 +3,7 @@ import yaml
 import os
 import re
 from typing import TypedDict, Literal, Union, Any
+import keyring
 
 TrackerType = Literal["boolean", "integer", "double", "float", "string"]
 
@@ -111,7 +112,6 @@ def add_to_git_ignore(path: str, git_ignore_path=".gitignore"):
 
 
 CONFIG_TOML_PATH = "midas.yaml"
-AUTH_CONFIG_TOML_PATH = "midas-auth.lock"
 
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 	"encoding_marker": "~",
@@ -178,27 +178,9 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 	}
 }
 
-DEFAULT_AUTH_CONFIG_TEMPLATE: AuthConfig = {
-	"playfab": {
-		"title_id": "123AB",
-		"dev_secret_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-	},
-	"aad": {
-		"client_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx",
-		"client_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-		"tenant_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx",
-	},
-	"roblox": {
-		"cookie": "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_xxxxxxxxxxxxxxxxxxxxxx",
-	}
-}
-
 def remove_config():
 	if os.path.exists(CONFIG_TOML_PATH):
 		os.remove(CONFIG_TOML_PATH)
-
-	if os.path.exists(AUTH_CONFIG_TOML_PATH):
-		os.remove(AUTH_CONFIG_TOML_PATH)
 
 def init_file():
 	assert not os.path.exists(CONFIG_TOML_PATH), f"{CONFIG_TOML_PATH} file already exists, deleting it could break encoding"
@@ -206,12 +188,6 @@ def init_file():
 	config_file = open(CONFIG_TOML_PATH, "w")
 	config_file.write(yaml.safe_dump(DEFAULT_CONFIG_TEMPLATE))
 	config_file.close()
-
-	auth_file = open(AUTH_CONFIG_TOML_PATH, "w")
-	auth_file.write(toml.dumps(DEFAULT_AUTH_CONFIG_TEMPLATE))
-	auth_file.close()
-
-	add_to_git_ignore(AUTH_CONFIG_TOML_PATH)
 
 def get_midas_config() -> MidasConfig:
 	if not os.path.exists(CONFIG_TOML_PATH):
@@ -381,19 +357,46 @@ def get_midas_config() -> MidasConfig:
 
 	return midas_config
 
+CREDENTIAL_USERNAME = os.path.abspath("") + "Midas"
+
 def get_auth_config() -> AuthConfig:
-	if not os.path.exists(AUTH_CONFIG_TOML_PATH):
-		print("no midas-auth.toml, have you initialized?")
+	title_id = keyring.get_password("title_id", CREDENTIAL_USERNAME)
+	dev_secret_key = keyring.get_password("dev_secret_key", CREDENTIAL_USERNAME)
+	client_id = keyring.get_password("client_id", CREDENTIAL_USERNAME)
+	client_secret = keyring.get_password("client_secret", CREDENTIAL_USERNAME)
+	tenant_id = keyring.get_password("tenant_id", CREDENTIAL_USERNAME)
+	cookie = keyring.get_password("cookie", CREDENTIAL_USERNAME)
 
-	config: Any = toml.loads(open(AUTH_CONFIG_TOML_PATH, "r").read())
-	return config
+	if not title_id:
+		title_id = ""
 
-def set_auth_config(auth_config: AuthConfig):
-	auth_file = open(AUTH_CONFIG_TOML_PATH, "w")
-	auth_file.write(toml.dumps(auth_config))
-	auth_file.close()
+	if not dev_secret_key:
+		dev_secret_key = ""
 
-def set_config_by_console(config: dict[str, str]) -> dict[str, str]:
-	for key in config:
-		config[key] = input(f"{key}: ")
-	return config
+	if not client_id:
+		client_id = ""
+		
+	if not client_secret:
+		client_secret = ""
+
+	if not tenant_id:
+		tenant_id = ""
+		
+	if not cookie:
+		cookie = ""
+
+	auth_config: AuthConfig = {
+		"playfab": {
+			"title_id": title_id,
+			"dev_secret_key": dev_secret_key,
+		},
+		"aad": {
+			"client_id": client_id,
+			"client_secret": client_secret,
+			"tenant_id": tenant_id,
+		},
+		"roblox": {
+			"cookie": cookie,
+		}
+	}
+	return auth_config

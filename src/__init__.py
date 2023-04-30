@@ -1,5 +1,6 @@
 import sys
 import os
+import keyring
 import multiprocessing
 import pandas as pd
 from pandas import DataFrame
@@ -8,6 +9,7 @@ from midas.playfab import PlayFabClient
 import src.config as config
 import src.treecode as treecode
 import src.build as build
+from src.config import CREDENTIAL_USERNAME
 
 # constants
 INIT_TAG = "init"
@@ -63,20 +65,18 @@ def main():
 
 	elif sys.argv[1] == AUTH_PLAYFAB_TAG:
 
-		auth_config = config.get_auth_config()
-		auth_config["playfab"] = config.set_config_by_console(auth_config["playfab"])
-		config.set_auth_config(auth_config)
+		keyring.set_password("title_id", CREDENTIAL_USERNAME, input("playfab title id: "))
+		keyring.set_password("dev_secret_key", CREDENTIAL_USERNAME, input("playfab dev secret key: "))
 
 	elif sys.argv[1] == AUTH_AAD_TAG:
 
-		auth_config = config.get_auth_config()
-		auth_config["aad"] = config.set_config_by_console(auth_config["aad"])
-		config.set_auth_config(auth_config)
+		keyring.set_password("client_id", CREDENTIAL_USERNAME, input("aad client id: "))
+		keyring.set_password("client_secret", CREDENTIAL_USERNAME, input("aad client secret: "))
+		keyring.set_password("tenant_id", CREDENTIAL_USERNAME, input("aad tenant id: "))
+
 	elif sys.argv[1] == AUTH_ROBLOX_TAG:
 
-		auth_config = config.get_auth_config()
-		auth_config["roblox"] = config.set_config_by_console(auth_config["roblox"])
-		config.set_auth_config(auth_config)
+		keyring.set_password("cookie", CREDENTIAL_USERNAME, input("roblox security cookie: "))
 
 	elif sys.argv[1] == DOWNLOAD_TAG:
 
@@ -105,11 +105,12 @@ def main():
 
 	elif sys.argv[1] == AUTH_ALL_TAG:
 
-		auth_config = config.get_auth_config()
-		auth_config["playfab"] = config.set_config_by_console(auth_config["playfab"])
-		auth_config["aad"] = config.set_config_by_console(auth_config["aad"])
-		auth_config["roblox"] = config.set_config_by_console(auth_config["roblox"])
-		config.set_auth_config(auth_config)
+		keyring.set_password("title_id", CREDENTIAL_USERNAME, input("playfab title id: "))
+		keyring.set_password("dev_secret_key", CREDENTIAL_USERNAME, input("playfab dev secret key: "))
+		keyring.set_password("client_id", CREDENTIAL_USERNAME, input("aad client id: "))
+		keyring.set_password("client_secret", CREDENTIAL_USERNAME, input("aad client secret: "))
+		keyring.set_password("tenant_id", CREDENTIAL_USERNAME, input("aad tenant id: "))
+		keyring.set_password("cookie", CREDENTIAL_USERNAME, input("roblox security cookie: "))
 
 	else:
 
