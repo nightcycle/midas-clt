@@ -10,6 +10,7 @@ class VersionData(TypedDict):
 	Build: TrackerType
 	Major: TrackerType
 	Minor: TrackerType
+	Patch: TrackerType
 
 class IndexData(TypedDict):
 	Total: TrackerType
@@ -28,7 +29,6 @@ class BaseStateTree(TypedDict):
 	Id: IdentificationData
 
 class BuildConfig(TypedDict):
-	roblox_wally_package_folder_path: str
 	server_boot_script_path: str
 	shared_state_tree_path: str
 	client_boot_script_path: str
@@ -115,6 +115,12 @@ AUTH_CONFIG_TOML_PATH = "midas-auth.lock"
 
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 	"encoding_marker": "~",
+	"version": {
+		"major": 1,
+		"minor": 0,
+		"patch": 0,
+		"hotfix": 0,
+	},
 	"playfab": {
 		"download_start_date": "1970-1-01 00:00:00.000000",
 		"download_window": 30,
@@ -146,7 +152,6 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"developer_products": {}
 	},
 	"build": {
-		"roblox_wally_package_folder_path": "game/ReplicatedStorage/Packages",
 		"server_boot_script_path": "src/Server/Analytics.server.luau",
 		"shared_state_tree_path": "src/Shared/MidasTree.luau",
 		"client_boot_script_path": "src/Client/Analytics.client.luau",
@@ -213,7 +218,7 @@ def get_midas_config() -> MidasConfig:
 		print("no midas.toml, have you initialized?")
 
 	untyped_config: Any = yaml.safe_load(open(CONFIG_TOML_PATH, "r").read())
-	midas_config: MidasConfig = untyped_config
+	midas_config: Any = untyped_config
 	
 	if midas_config["templates"]["chat"]:
 		midas_config["state_tree"]["Chat"] = {

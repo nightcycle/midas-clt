@@ -1,5 +1,6 @@
 import sys
 import os
+import multiprocessing
 import pandas as pd
 from pandas import DataFrame
 import midas.data_encoder as data_encoder
@@ -114,4 +115,7 @@ def main():
 
 		raise ValueError(f"{sys.argv[1]} does not match any known tags")
 
-main()			
+# prevent from running twice
+if __name__ == '__main__':
+	multiprocessing.freeze_support()
+	main()		
