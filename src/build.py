@@ -30,11 +30,7 @@ def get_midas_require_path():
 			if "nightcycle/midas" in path:
 				midas_package_name = name
  
-	midas_package_path = os.path.splitext(midas_config["build"]["shared_state_tree_path"])[0] + "/Packages/"+midas_package_name+".lua"
-
-	assert os.path.exists(midas_package_path), f"couldn't find midas wally package at {midas_package_path}"
-
-	rbx_midas_package_path = get_roblox_path_from_env_path(midas_package_path)
+	rbx_midas_package_path = get_roblox_path_from_env_path("Packages") + "/"+midas_package_name
 	return get_module_require(rbx_midas_package_path)
 
 def build_shared_luau_tree():
