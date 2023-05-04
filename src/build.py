@@ -2,6 +2,7 @@ import src.config as config
 import src.treecode as treecode
 import luau
 import dpath
+import toml
 import sys
 import os
 from luau import import_type, indent_block
@@ -20,7 +21,19 @@ def get_package_zip_path() -> str:
 
 def get_midas_require_path():
 	midas_config = config.get_midas_config()
-	midas_package_path = os.path.splitext(midas_config["build"]["shared_state_tree_path"])[0] + "/Packages/MidasAnalytics.lua"
+	
+	midas_package_name = ""
+
+	with open("wally.toml", "r") as wally_file:
+		wally_data = toml.loads(wally_file.read())
+		for name, path in wally_data["dependencies"].items():
+			if "nightcycle/midas" in path:
+				midas_package_name = name
+ 
+	midas_package_path = os.path.splitext(midas_config["build"]["shared_state_tree_path"])[0] + "/Packages/"+midas_package_name+".lua"
+
+	assert os.path.exists(midas_package_path), f"couldn't find midas wally package at {midas_package_path}"
+
 	rbx_midas_package_path = get_roblox_path_from_env_path(midas_package_path)
 	return get_module_require(rbx_midas_package_path)
 
