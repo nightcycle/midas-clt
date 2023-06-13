@@ -19,20 +19,6 @@ def get_package_zip_path() -> str:
 
 	return os.path.join(base_path, "data\\Packages.zip")
 
-def get_midas_require_path():
-	midas_config = config.get_midas_config()
-	
-	midas_package_name = ""
-
-	with open("wally.toml", "r") as wally_file:
-		wally_data = toml.loads(wally_file.read())
-		for name, path in wally_data["dependencies"].items():
-			if "nightcycle/midas" in path:
-				midas_package_name = name
- 
-	rbx_midas_package_path = get_roblox_path_from_env_path("Packages") + "/"+midas_package_name
-	return get_module_require(rbx_midas_package_path)
-
 def build_shared_luau_tree():
 
 	midas_config = config.get_midas_config()
@@ -68,7 +54,7 @@ def build_shared_luau_tree():
 		"--!strict",
 		GENERATED_HEADER_WARNING_COMMENT,	
 		"\n-- Packages",
-		"local Midas = " + get_midas_require_path(),
+		"local Midas = " + get_module_require("script/Packages/MidasAnalytics"),
 		"\n-- Types",
 		"export type TrackerAccessNode<T> = (player: Player, solver: () -> T) -> nil",
 	]
@@ -134,7 +120,7 @@ def build_client_boot():
 
 	init_function_content = indent_block([
 		"\n -- needs to be required on client to set up remote event listeners",
-		"local _Midas = " + get_midas_require_path(),
+		"local _Midas = " + get_module_require("script/Packages/MidasAnalytics"),
 		"return nil"
 	], 1)
 
@@ -218,7 +204,7 @@ def build_server_boot():
 		GENERATED_HEADER_WARNING_COMMENT,
 		"\n-- packages",
 		"local Maid = " + get_package_require("Maid"),
-		"local Midas = " + get_midas_require_path(),
+		"local Midas = " + get_module_require("script/Packages/MidasAnalytics"),
 		"\ntype Maid = Maid.Maid",
 	]
 
