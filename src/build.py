@@ -1,4 +1,5 @@
 import src.config as config
+import src.ENCODING_MARKER as ENCODING_MARKER
 import src.treecode as treecode
 import luau
 import dpath
@@ -161,8 +162,8 @@ def build_server_boot():
 	build_path = midas_config["build"]["server_boot_script_path"]
 	remove_all_path_variants(build_path, "server")
 	
-	title_id = auth_config["playfab"]["title_id"]
-	dev_secret_key = auth_config["playfab"]["dev_secret_key"]
+	title_id = auth_config["data"]["title_id"]
+	dev_secret_key = auth_config["data"]["dev_secret_key"]
 
 	config_table = {
 		"Version": {
@@ -171,7 +172,7 @@ def build_server_boot():
 			"Patch": midas_config["version"]["patch"],
 		},
 		"Encoding": {
-			"Marker": encoding_config["marker"],
+			"Marker": ENCODING_MARKER,
 			"Dictionary": {
 				"Properties": encoding_config["dictionary"]["properties"],
 				"Values": encoding_config["dictionary"]["values"]

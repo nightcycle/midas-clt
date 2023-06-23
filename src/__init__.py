@@ -37,9 +37,9 @@ def download(csv_path: str):
 		title_id = pf_auth_config["title_id"]
 	)
 	df = DataFrame(pf_client.download_all_event_data(
-		user_join_floor=data_encoder.get_datetime_from_playfab_str(midas_config["playfab"]["download_start_date"]),
-		join_window_in_days=midas_config["playfab"]["download_window"],
-		user_limit= midas_config["playfab"]["user_limit"]
+		user_join_floor=data_encoder.get_datetime_from_playfab_str(midas_config["data"]["download_start_date"]),
+		join_window_in_days=midas_config["data"]["download_window"],
+		user_limit= midas_config["data"]["user_limit"]
 	))
 
 	print("decoding")
@@ -99,9 +99,9 @@ def main():
 		if os.path.exists(shared_tree_build_path):
 			os.remove(shared_tree_build_path)
 
-		module_build_path = midas_config["build"]["midas_py_module_out_path"]
-		if os.path.exists(module_build_path):
-			os.remove(module_build_path)
+		# module_build_path = midas_config["build"]["midas_py_module_out_path"]
+		# if os.path.exists(module_build_path):
+		# 	os.remove(module_build_path)
 
 	elif sys.argv[1] == AUTH_ALL_TAG:
 

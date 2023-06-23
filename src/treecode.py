@@ -6,9 +6,10 @@ import dpath
 import os
 import src.config as config
 from src.config import TrackerType
+import src.ENCODING_MARKER as ENCODING_MARKER
 from typing import TypedDict, Literal, Union, Any
 
-TREE_ENCODING_PATH = "midas-tree-encoding.lock"
+TREE_ENCODING_PATH = "midas.cache"
 ASCII_FLOOR = 33
 ASCII_CEILING = 91
 BAD_ASCII_CHARACTERS = [":", "\"", "\\"]
@@ -74,7 +75,7 @@ def set_tree_encoding():
 
 	if os.path.exists(TREE_ENCODING_PATH):
 		encoding_tree: Any = json.loads(open(TREE_ENCODING_PATH, "r").read())
-		assert encoding_tree["marker"] == midas_config["encoding_marker"], "markers are mismatched"
+		assert encoding_tree["marker"] == ENCODING_MARKER, "markers are mismatched"
 		old_patterns = encoding_tree["patterns"]
 		for path, value in dpath.search(encoding_tree["arrays"], '**', yielded=True):
 			if type(value) == list:
@@ -152,7 +153,7 @@ def set_tree_encoding():
 
 	pattern_codes = {}
 	for i, pattern in enumerate(patterns):
-		pattern_codes[pattern] = get_code(i+1, midas_config["encoding_marker"])
+		pattern_codes[pattern] = get_code(i+1, ENCODING_MARKER)
 
 	# print("pattern_codes", json.dumps(pattern_codes,indent=5))
 
@@ -174,7 +175,7 @@ def set_tree_encoding():
 
 	# assemble starting encoding tree
 	encoding_tree: EncodingTree = {
-		"marker": midas_config["encoding_marker"],
+		"marker": ENCODING_MARKER,
 		"patterns": patterns,
 		"dictionary": {
 			"properties": property_dict,

@@ -32,8 +32,8 @@ class BaseStateTree(TypedDict):
 class BuildConfig(TypedDict):
 	server_boot_script_path: str
 	shared_state_tree_path: str
+	shared_event_tree_path: str
 	client_boot_script_path: str
-	midas_py_module_out_path: str
 
 class RecorderTargetConfig(TypedDict):
 	place_id: int
@@ -42,29 +42,18 @@ class RecorderTargetConfig(TypedDict):
 class RecorderConfig(TypedDict):
 	interval: int
 	out_path: str
+	branch: str
 	id: RecorderTargetConfig
 
-class PlayFabConfig(TypedDict):
-	download_start_date: str
-	download_window: int
-	user_limit: int
-
 class TemplateConfig(TypedDict):
-	join: bool
 	chat: bool
 	population: bool
 	server_performance: bool
 	market: bool
-	exit: bool
 	character: bool
-	player: bool
 	demographics: bool
 	client_performance: bool
 	group: dict[str, int]
-
-class ProductConfig(TypedDict):
-	gamepasses: dict[str, int]
-	developer_products: dict[str, int]
 
 class VersionConfig(TypedDict):
 	major: int
@@ -73,14 +62,11 @@ class VersionConfig(TypedDict):
 	hotfix: int | None
 
 class MidasConfig(TypedDict):
-	encoding_marker: str
 	version: VersionConfig
-	playfab: PlayFabConfig
 	recorder: RecorderConfig
 	build: BuildConfig
-	products: ProductConfig
 	templates: TemplateConfig
-	state_tree: Union[BaseStateTree, dict]
+	tree: Union[BaseStateTree, dict]
 
 class AADConfig(TypedDict):
 	client_id: str
@@ -110,54 +96,43 @@ def add_to_git_ignore(path: str, git_ignore_path=".gitignore"):
 		contents += "\n" + path
 		open(git_ignore_path, "w").write(contents)
 
+ENCODING_MARKER = "~"
 
 CONFIG_TOML_PATH = "midas.yaml"
 
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
-	"encoding_marker": "~",
 	"version": {
 		"major": 1,
 		"minor": 0,
 		"patch": 0,
 		"hotfix": 0,
 	},
-	"playfab": {
-		"download_start_date": "1970-1-01 00:00:00.000000",
-		"download_window": 30,
-		"user_limit": 10000000,
-	},
 	"recorder": {
 		"interval": 60,
-		"out_path": "path/to/data/record/dir/here",
+		"out_path": "data",
+		"branch": "midas-record-data",
 		"id": {
 			"place_id": 12345,
 			"group_id": 67890,
 		}
 	},
 	"templates": {
-		"join": False,
 		"chat": False,
 		"population": False,
 		"server_performance": False,
 		"market": False,
-		"exit": False,
 		"character": False,
-		"player": False,
 		"demographics": False,
 		"client_performance": False,
 		"group": {},
 	},
-	"products": {
-		"gamepasses": {},
-		"developer_products": {}
-	},
 	"build": {
 		"server_boot_script_path": "src/Server/Analytics.server.luau",
-		"shared_state_tree_path": "src/Shared/MidasTree.luau",
+		"shared_state_tree_path": "src/Shared/MidasStateTree.luau",
+		"shared_event_tree_path": "src/Shared/MidasEventTree.luau",
 		"client_boot_script_path": "src/Client/Analytics.client.luau",
-		"midas_py_module_out_path": "path/to/script"
 	},
-	"state_tree": {
+	"tree": {
 		"Duration": "integer",
 		"IsStudio": "boolean",
 		"Version": {
