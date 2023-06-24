@@ -21,7 +21,7 @@ AUTH_ALL_TAG = "auth"
 CLEAN_TAG = "clean"
 DOWNLOAD_TAG = "download"
 
-def download(csv_path: str):
+def download(csv_path: str, download_start_data: str, download_window: int, user_limit: int):
 	abs_csv_path = os.path.abspath(csv_path)
 
 	midas_config = config.get_midas_config()
@@ -37,9 +37,9 @@ def download(csv_path: str):
 		title_id = pf_auth_config["title_id"]
 	)
 	df = DataFrame(pf_client.download_all_event_data(
-		user_join_floor=data_encoder.get_datetime_from_playfab_str(midas_config["data"]["download_start_date"]),
-		join_window_in_days=midas_config["data"]["download_window"],
-		user_limit= midas_config["data"]["user_limit"]
+		user_join_floor=data_encoder.get_datetime_from_playfab_str(download_start_data),
+		join_window_in_days=download_window,
+		user_limit= user_limit
 	))
 
 	print("decoding")

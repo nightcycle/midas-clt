@@ -61,11 +61,16 @@ class VersionConfig(TypedDict):
 	patch: int
 	hotfix: int | None
 
+class MonetizationConfig(TypedDict):
+	products: dict
+	gamepasses: dict
+
 class MidasConfig(TypedDict):
 	version: VersionConfig
 	recorder: RecorderConfig
 	build: BuildConfig
 	templates: TemplateConfig
+	monetization: MonetizationConfig
 	tree: Union[BaseStateTree, dict]
 
 class AADConfig(TypedDict):
@@ -131,6 +136,14 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"shared_state_tree_path": "src/Shared/MidasStateTree.luau",
 		"shared_event_tree_path": "src/Shared/MidasEventTree.luau",
 		"client_boot_script_path": "src/Client/Analytics.client.luau",
+	},
+	"monetization": {
+		"products": {
+
+		},
+		"gamepasses": {
+
+		}
 	},
 	"tree": {
 		"Duration": "integer",

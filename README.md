@@ -62,6 +62,21 @@ Reserved for emergency fixes to the game.
 ### recorder
 This tool can set up a github action workflow which records data every few minutes related to developer stats and advertising performance.
 
+### monetization
+Allows for the encoding and easy tracking of purchases.
+
+#### products
+```yaml
+product_a: 12345
+product_b: 67890
+```
+
+#### gamepasses
+```yaml
+gamepass_a: 12345
+gamepass_b: 67890
+```
+
 #### id
 
 ##### group_id

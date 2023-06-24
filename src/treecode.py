@@ -6,9 +6,9 @@ import dpath
 import os
 import src.config as config
 from src.config import TrackerType
-import src.ENCODING_MARKER as ENCODING_MARKER
 from typing import TypedDict, Literal, Union, Any
 
+ENCODING_MARKER = config.ENCODING_MARKER
 TREE_ENCODING_PATH = "midas.cache"
 ASCII_FLOOR = 33
 ASCII_CEILING = 91
