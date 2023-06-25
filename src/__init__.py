@@ -80,7 +80,12 @@ def main():
 
 	elif sys.argv[1] == DOWNLOAD_TAG:
 
-		download(sys.argv[2])
+		download(
+			csv_path=sys.argv[2], 
+			download_start_data=sys.argv[3], 
+			download_window=int(sys.argv[4]), 
+			user_limit=int(sys.argv[5])
+		)
 
 	elif sys.argv[1] == CLEAN_TAG:
 
