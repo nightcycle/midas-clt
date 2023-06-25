@@ -292,7 +292,7 @@ def get_midas_config() -> MidasConfig:
 			midas_config["tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
 			midas_config["tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
 
-		for product_name in midas_config["products"]["developer_products"]:
+		for product_name in midas_config["products"]["products"]:
 			formatted_product_name = re.sub(r'\s', '', product_name)
 			midas_config["tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
 
