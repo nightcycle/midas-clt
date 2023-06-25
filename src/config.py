@@ -287,12 +287,12 @@ def get_midas_config() -> MidasConfig:
 				}
 			},
 		}
-		for gamepass_name in midas_config["products"]["gamepasses"]:
+		for gamepass_name in midas_config["monetization"]["gamepasses"]:
 			formatted_pass_name = re.sub(r'\s', '', gamepass_name)
 			midas_config["tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
 			midas_config["tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
 
-		for product_name in midas_config["products"]["products"]:
+		for product_name in midas_config["monetization"]["products"]:
 			formatted_product_name = re.sub(r'\s', '', product_name)
 			midas_config["tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
 

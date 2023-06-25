@@ -156,12 +156,16 @@ def build_shared_event_tree():
 
 	contents += [
 		"\n-- Class",
-		"function constructTrigger<T>(path: string): TriggerNode",
+		"function constructTrigger<T>(path: string, seriesDuration: number?): TriggerNode",
 		] + indent_block([
 			"return function(player: Player)",
 			] + indent_block([
-				f"local tracker = Midas:GetTracker(player, path)",
-				"tracker:Fire()",
+				"local keys: {[number]: string} = path:split(\"/\")",
+				"local propertyName = keys[#keys]",
+				"table.remove(keys, #keys)",
+				"local basePath = table.concat(keys, \"/\")",
+				"local tracker = Midas:GetTracker(player, basePath)",
+				"tracker:Fire(propertyName, nil, seriesDuration)"
 			], 2) + [
 			"end",
 		]) + [		
