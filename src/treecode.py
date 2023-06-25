@@ -67,7 +67,7 @@ def get_code(index: int, marker: str) -> str:
 
 def set_tree_encoding():
 	midas_config = config.get_midas_config()
-	tree_structure = midas_config["state_tree"]
+	tree_structure = midas_config["tree"]
 
 	# read prior tree
 	old_patterns: list[str] = []

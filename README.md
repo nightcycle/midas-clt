@@ -32,6 +32,9 @@ Upon initializing, a file named "midas.yaml" will appear in your workspace. This
 ### build
 This tool builds various scripts to be loaded into the target game.
 
+#### midas_package_rbx_path
+This is the roblox environment path to the Midas wally package.
+
 #### client_boot_script_path
 This is where you want the client boot script to be generated. It will never need to be referenced by another script, however it will need to be somewhere in the client.
 
@@ -58,9 +61,6 @@ Reserved for fixes to the game.
 
 #### hotfix
 Reserved for emergency fixes to the game.
-
-### recorder
-This tool can set up a github action workflow which records data every few minutes related to developer stats and advertising performance.
 
 ### monetization
 Allows for the encoding and easy tracking of purchases.

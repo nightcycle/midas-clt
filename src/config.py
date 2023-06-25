@@ -30,6 +30,7 @@ class BaseStateTree(TypedDict):
 	Id: IdentificationData
 
 class BuildConfig(TypedDict):
+	midas_package_rbx_path: str
 	server_boot_script_path: str
 	shared_state_tree_path: str
 	shared_event_tree_path: str
@@ -38,12 +39,6 @@ class BuildConfig(TypedDict):
 class RecorderTargetConfig(TypedDict):
 	place_id: int
 	group_id: int
-
-class RecorderConfig(TypedDict):
-	interval: int
-	out_path: str
-	branch: str
-	id: RecorderTargetConfig
 
 class TemplateConfig(TypedDict):
 	chat: bool
@@ -67,7 +62,6 @@ class MonetizationConfig(TypedDict):
 
 class MidasConfig(TypedDict):
 	version: VersionConfig
-	recorder: RecorderConfig
 	build: BuildConfig
 	templates: TemplateConfig
 	monetization: MonetizationConfig
@@ -112,15 +106,6 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"patch": 0,
 		"hotfix": 0,
 	},
-	"recorder": {
-		"interval": 60,
-		"out_path": "data",
-		"branch": "midas-record-data",
-		"id": {
-			"place_id": 12345,
-			"group_id": 67890,
-		}
-	},
 	"templates": {
 		"chat": False,
 		"population": False,
@@ -132,6 +117,7 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"group": {},
 	},
 	"build": {
+		"midas_package_rbx_path": "game/ReplicatedStorage/Packages/Midas",
 		"server_boot_script_path": "src/Server/Analytics.server.luau",
 		"shared_state_tree_path": "src/Shared/MidasStateTree.luau",
 		"shared_event_tree_path": "src/Shared/MidasEventTree.luau",
@@ -185,13 +171,13 @@ def get_midas_config() -> MidasConfig:
 	midas_config: Any = untyped_config
 	
 	if midas_config["templates"]["chat"]:
-		midas_config["state_tree"]["Chat"] = {
+		midas_config["tree"]["Chat"] = {
 			"LastMessage": "string",
 			"Count": "integer",
 		}
 
 	if midas_config["templates"]["character"]:
-		midas_config["state_tree"]["Character"] = {
+		midas_config["tree"]["Character"] = {
 			"IsDead": "boolean",
 			"Height": "double",
 			"Mass": "double",
@@ -227,7 +213,7 @@ def get_midas_config() -> MidasConfig:
 		}
 
 	if midas_config["templates"]["population"]:
-		midas_config["state_tree"]["Population"] = {
+		midas_config["tree"]["Population"] = {
 			"Total": "integer",
 			"Team": "integer",
 			"PeakFriends": "integer",
@@ -236,10 +222,10 @@ def get_midas_config() -> MidasConfig:
 		}
 
 	if midas_config["templates"]["server_performance"]:
-		if not "Performance" in midas_config["state_tree"]:
-			midas_config["state_tree"]["Performance"] = {}
+		if not "Performance" in midas_config["tree"]:
+			midas_config["tree"]["Performance"] = {}
 
-		midas_config["state_tree"]["Performance"]["Server"] = {
+		midas_config["tree"]["Performance"]["Server"] = {
 			"EventsPerMinute": "integer",
 			"Ping": "integer",
 			"ServerTime": "integer",
@@ -283,7 +269,7 @@ def get_midas_config() -> MidasConfig:
 		}
 
 	if midas_config["templates"]["market"]:
-		midas_config["state_tree"]["Market"] = {
+		midas_config["tree"]["Market"] = {
 			"Spending": {
 				"Gamepass": "integer",
 				"Product": "integer",
@@ -303,21 +289,21 @@ def get_midas_config() -> MidasConfig:
 		}
 		for gamepass_name in midas_config["products"]["gamepasses"]:
 			formatted_pass_name = re.sub(r'\s', '', gamepass_name)
-			midas_config["state_tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
-			midas_config["state_tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
+			midas_config["tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
+			midas_config["tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
 
 		for product_name in midas_config["products"]["developer_products"]:
 			formatted_product_name = re.sub(r'\s', '', product_name)
-			midas_config["state_tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
+			midas_config["tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
 
 	if len(list(midas_config["templates"]["group"].keys())) > 0:
-		midas_config["state_tree"]["Groups"] = {}
+		midas_config["tree"]["Groups"] = {}
 		for group_name, group_id in (midas_config["templates"]["group"]).items():
 			formatted_group_name = re.sub(r'\s', '', group_name)
-			midas_config["state_tree"]["Groups"][formatted_group_name] = "boolean"
+			midas_config["tree"]["Groups"][formatted_group_name] = "boolean"
 
 	if midas_config["templates"]["demographics"]:
-		midas_config["state_tree"]["Demographics"] = {
+		midas_config["tree"]["Demographics"] = {
 			"AccountAge": "integer",
 			"RobloxLangugage": "string",
 			"SystemLanguage": "string",
@@ -334,10 +320,10 @@ def get_midas_config() -> MidasConfig:
 		}
 
 	if midas_config["templates"]["client_performance"]:
-		if not "Performance" in midas_config["state_tree"]:
-			midas_config["state_tree"]["Performance"] = {}
+		if not "Performance" in midas_config["tree"]:
+			midas_config["tree"]["Performance"] = {}
 
-		midas_config["state_tree"]["Performance"]["Client"] = {
+		midas_config["tree"]["Performance"]["Client"] = {
 			"Ping": "integer",
 			"FPS": "integer",
 		}
