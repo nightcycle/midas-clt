@@ -4,6 +4,7 @@ import keyring
 import multiprocessing
 import pandas as pd
 from pandas import DataFrame
+import midas.playfab as playfab
 import midas.data_encoder as data_encoder
 from midas.playfab import PlayFabClient
 import src.config as config
@@ -37,7 +38,7 @@ def download(csv_path: str, download_start_data: str, download_window: int, user
 		title_id = pf_auth_config["title_id"]
 	)
 	df = DataFrame(pf_client.download_all_event_data(
-		user_join_floor=data_encoder.get_datetime_from_playfab_str(download_start_data),
+		user_join_floor=playfab.get_datetime_from_playfab_str(download_start_data),
 		join_window_in_days=download_window,
 		user_limit= user_limit
 	))
@@ -71,7 +72,7 @@ def main():
 	elif sys.argv[1] == AUTH_AAD_TAG:
 
 		keyring.set_password("client_id", CREDENTIAL_USERNAME, input("aad client id: "))
-		keyring.set_password("client_secret", CREDENTIAL_USERNAME, input("aad client secret: "))
+		keyring.set_password("client_secret", CREDENTIAL_USERNAME, input("aad client secret value (not id): "))
 		keyring.set_password("tenant_id", CREDENTIAL_USERNAME, input("aad tenant id: "))
 
 	elif sys.argv[1] == AUTH_ROBLOX_TAG:

@@ -327,14 +327,14 @@ midas build
 ## download
 If you want to download your data you can do so with this command:
 ```sh
-midas download path/to/file.csv "1970-1-01 00:00:00.000000" 30 1000000
+midas download path/to/file.csv "2023-06-25 18:37:11.0000" 30 1000000
 ```
 ### parameters
 #### #1: path
 Downloads data to this file as a csv.
 
 #### #2: start
-Downloads data from users who joined after this date.
+Downloads data from users who joined after this date. Please use the exact format in the example above
 
 #### #3: duration
 The number of days after the start date which data will be collected.
