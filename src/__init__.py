@@ -62,6 +62,10 @@ def main():
 	elif sys.argv[1] == BUILD_LUAU_TAG: 
 
 		treecode.set_tree_encoding()
+		if len(sys.argv) > 2:
+			keyring.set_password("title_id", CREDENTIAL_USERNAME, sys.argv[2])
+			keyring.set_password("dev_secret_key", CREDENTIAL_USERNAME, sys.argv[3])
+
 		build.main()
 
 	elif sys.argv[1] == AUTH_PLAYFAB_TAG:
