@@ -22,10 +22,10 @@ AUTH_ALL_TAG = "auth"
 CLEAN_TAG = "clean"
 DOWNLOAD_TAG = "download"
 
-def download(csv_path: str, download_start_data: str, download_window: int, user_limit: int):
-	abs_csv_path = os.path.abspath(csv_path)
+def download(json_path: str, download_start_data: str, download_window: int, user_limit: int):
+	abs_json_path = os.path.abspath(json_path)
 
-	midas_config = config.get_midas_config()
+	# midas_config = config.get_midas_config()
 
 	auth_config = config.get_auth_config()
 	pf_auth_config = auth_config["playfab"]
@@ -46,8 +46,8 @@ def download(csv_path: str, download_start_data: str, download_window: int, user
 	print("decoding")
 	decoded_df = data_encoder.decode_raw_df(df, treecode.get_tree_encoding())
 
-	print("writing to csv")
-	decoded_df.to_csv(abs_csv_path)
+	print("writing to json")
+	decoded_df.to_json(abs_json_path, indent=4, orient="records")
 
 	return decoded_df
 
@@ -82,7 +82,7 @@ def main():
 	elif sys.argv[1] == DOWNLOAD_TAG:
 
 		download(
-			csv_path=sys.argv[2], 
+			json_path=sys.argv[2], 
 			download_start_data=sys.argv[3], 
 			download_window=int(sys.argv[4]), 
 			user_limit=int(sys.argv[5])
