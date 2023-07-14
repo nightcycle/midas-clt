@@ -21,8 +21,9 @@ AUTH_ROBLOX_TAG = "auth-roblox"
 AUTH_ALL_TAG = "auth"
 CLEAN_TAG = "clean"
 DOWNLOAD_TAG = "download"
+RAW_TAG = "-raw"
 
-def download(json_path: str, download_start_data: str, download_window: int, user_limit: int):
+def download(json_path: str, download_start_data: str, download_window: int, user_limit: int, is_raw: bool):
 	abs_json_path = os.path.abspath(json_path)
 
 	# midas_config = config.get_midas_config()
@@ -43,11 +44,15 @@ def download(json_path: str, download_start_data: str, download_window: int, use
 		user_limit= user_limit
 	))
 
-	print("decoding")
-	decoded_df = data_encoder.decode_raw_df(df, treecode.get_tree_encoding())
+	if not is_raw:
+		print("decoding")
+		decoded_df = data_encoder.decode_raw_df(df, treecode.get_tree_encoding())
 
-	print("writing to json")
-	decoded_df.to_json(abs_json_path, indent=4, orient="records")
+		print("writing to json")
+		decoded_df.to_json(abs_json_path, indent=4, orient="records")
+	else:
+		print("writing raw to json")
+		df.to_json(abs_json_path, indent=4, orient="records")
 
 	return decoded_df
 
@@ -89,7 +94,8 @@ def main():
 			json_path=sys.argv[2], 
 			download_start_data=sys.argv[3], 
 			download_window=int(sys.argv[4]), 
-			user_limit=int(sys.argv[5])
+			user_limit=int(sys.argv[5]),
+			is_raw=(RAW_TAG in sys.argv)
 		)
 
 	elif sys.argv[1] == CLEAN_TAG:
