@@ -50,11 +50,13 @@ def download(json_path: str, download_start_data: str, download_window: int, use
 
 		print("writing to json")
 		decoded_df.to_json(abs_json_path, indent=4, orient="records")
+		
+		return decoded_df
 	else:
 		print("writing raw to json")
 		df.to_json(abs_json_path, indent=4, orient="records")
 
-	return decoded_df
+		return df
 
 def main():
 	# parse command

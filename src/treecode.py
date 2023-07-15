@@ -12,7 +12,7 @@ ENCODING_MARKER = config.ENCODING_MARKER
 TREE_ENCODING_PATH = "midas.cache"
 ASCII_FLOOR = 33
 ASCII_CEILING = 91
-BAD_ASCII_CHARACTERS = [":", "\"", "\\"]
+BAD_ASCII_CHARACTERS = [":", "\"", "\\", "%", "'", "`", "*", ".", "$", "^", "(", ")", "[", "]", "+", "-", "?"]
 
 class EncodingDictionary(TypedDict):
 	properties: dict[str, str]

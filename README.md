@@ -199,7 +199,7 @@ Some information is just useful to have. If you enable a template these data str
 {
 	"Demographics": {
 		"AccountAge": "integer",
-		"RobloxLangugage": "string",
+		"RobloxLanguage": "string",
 		"SystemLanguage": "string",
 		"Platform": {
 			"Accelerometer": "boolean",
@@ -329,6 +329,7 @@ If you want to download your data you can do so with this command:
 ```sh
 midas download path/to/file.json "2023-06-25 18:37:11.0000" 30 1000000
 ```
+You can add ``-raw`` at the end if you're debugging a decoding issue and wish to see the data pre-decoding.
 ### parameters
 #### #1: path
 Downloads data to this file as json.
