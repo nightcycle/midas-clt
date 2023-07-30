@@ -1,10 +1,12 @@
 import toml
 import yaml
+import json
 import os
 import re
-from typing import TypedDict, Literal, Union, Any
+from typing import TypedDict, Literal, Union, Optional, Any
 import keyring
-
+from copy import deepcopy
+import dpath
 TrackerType = Literal["boolean", "integer", "double", "float", "string"]
 
 class VersionData(TypedDict):
@@ -40,15 +42,6 @@ class RecorderTargetConfig(TypedDict):
 	place_id: int
 	group_id: int
 
-class TemplateConfig(TypedDict):
-	chat: bool
-	population: bool
-	server_performance: bool
-	market: bool
-	character: bool
-	demographics: bool
-	client_performance: bool
-	group: dict[str, int]
 
 class VersionConfig(TypedDict):
 	major: int
@@ -60,10 +53,14 @@ class MonetizationConfig(TypedDict):
 	products: dict
 	gamepasses: dict
 
+class TemplateConfig(TypedDict):
+	State: dict
+	Event: dict
+
 class MidasConfig(TypedDict):
 	version: VersionConfig
 	build: BuildConfig
-	templates: TemplateConfig
+	template: TemplateConfig
 	monetization: MonetizationConfig
 	tree: Union[BaseStateTree, dict]
 
@@ -99,6 +96,153 @@ ENCODING_MARKER = "~"
 
 CONFIG_TOML_PATH = "midas.yaml"
 
+TEMPLATE_STATE_TYPE_TREE = {
+	"Chat": {
+		"LastMessage": "string",
+		"Count": "integer",
+	},
+	"Character": {
+		"IsDead": "boolean",
+		"Height": "double",
+		"Mass": "double",
+		"State": [
+			"FallingDown", 
+			"Running", 
+			"RunningNoPhysics", 
+			"Climbing",
+			"StrafingNoPhysics",
+			"Ragdoll",
+			"GettingUp",
+			"Jumping",
+			"Landed",
+			"Flying",
+			"Freefall",
+			"Seated",
+			"PlatformStanding",
+			"Dead",
+			"Swimming",
+			"Physics",
+			"None"
+		],
+		"WalkSpeed": "double",
+		"Position": {
+			"X": "double",
+			"Y": "double",
+		},
+		"Altitude": "double",
+		"JumpPower": "double",
+		"Health": "double",
+		"MaxHealth": "double",
+		"Deaths": "integer",
+	},
+	"Population": {
+		"Total": "integer",
+		"Team": "integer",
+		"PeakFriends": "integer",
+		"Friends": "integer",
+		"SpeakingDistance": "integer",
+	},
+	"Performance": {
+		"Client": {
+			"Ping": "integer",
+			"FPS": "integer",
+		},
+		"Server": {
+			"EventsPerMinute": "integer",
+			"Ping": "integer",
+			"ServerTime": "integer",
+			"HeartRate": "integer",
+			"Instances": "integer",
+			"MovingParts": "integer",
+			"Network": {
+				"Data": {
+					"Send": "integer",
+					"Receive": "integer",
+				},
+				"Physics": {
+					"Send": "integer",
+					"Receive": "integer",
+				},
+			},
+			"Memory": {
+				"Internal": "integer",
+				"HttpCache": "integer",
+				"Instances": "integer",
+				"Signals": "integer",
+				"LuaHeap": "integer",
+				"Script": "integer",
+				"PhysicsCollision": "integer",
+				"PhysicsParts": "integer",
+				"CSG": "integer",
+				"Particle": "integer",
+				"Part": "integer",
+				"MeshPart": "integer",
+				"SpatialHash": "integer",
+				"TerrainGraphics": "integer",
+				"Textures": "integer",
+				"CharacterTextures": "integer",
+				"SoundsData": "integer",
+				"SoundsStreaming": "integer",
+				"TerrainVoxels": "integer",
+				"Guis": "integer",
+				"Animations": "integer",
+				"Pathfinding": "integer",
+			},
+		},
+	},
+	"Spending": {
+		"Spending": {
+			"Product": "integer",
+			"Gamepass": "integer",
+			"Total": "integer",
+		},
+		"Gamepasses": {},		
+		"Purchase": {
+			"Product": {
+				"Name": ["dev_product_name_1", "dev_product_name_2"],
+				"Price": "integer"
+			},
+			"Gamepass": {
+				"Name": ["gamepass_name_1", "gamepass_name_2"],
+				"Price": "integer"
+			}
+		},
+	},
+
+	"Groups": {},
+	"Badges": {},
+	"Demographics": {
+		"AccountAge": "integer",
+		"RobloxLanguage": [
+			"en-us",
+			"pt-br",
+			"en-uk",
+		],
+		"SystemLanguage": [
+			"en-us",
+			"pt-br",
+			"en-uk",
+		],
+		"UserSettings": {
+			"Fullscreen": "boolean",
+			"GamepadCameraSensitivity": "double",
+			"MouseSensitivity": "double",
+			"SavedQualityLevel": "integer",
+		},
+		"Platform": {
+			"Accelerometer": "boolean",
+			"Gamepad": "boolean",
+			"Gyroscope": "boolean",
+			"Keyboard": "boolean",
+			"Mouse": "boolean",
+			"Touch": "boolean",
+			"VR": "boolean",
+			"ScreenSize": "integer",
+			"ScreenRatio": ["16:10","16:9","5:4","5:3","3:2","4:3","9:16","uncommon"],
+		},
+	},
+}
+
 DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 	"version": {
 		"major": 1,
@@ -106,15 +250,134 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 		"patch": 0,
 		"hotfix": 0,
 	},
-	"templates": {
-		"chat": False,
-		"population": False,
-		"server_performance": False,
-		"market": False,
-		"character": False,
-		"demographics": False,
-		"client_performance": False,
-		"group": {},
+	"template": {
+		"State": {
+			"Chat": {
+				"LastMessage": False,
+				"Count": False,
+			},
+			"Character": {
+				"IsDead": False,
+				"Height": False,
+				"Mass": False,
+				"State": False,
+				"WalkSpeed": False,
+				"Position": False,
+				"Altitude": False,
+				"JumpPower": False,
+				"Health": False,
+				"MaxHealth": False,
+				"Deaths": False,
+			},
+			"Population": {
+				"Total": False,
+				"Team": False,
+				"PeakFriends": False,
+				"Friends": False,
+				"SpeakingDistance": False,
+			},
+			"Performance": {
+				"Client": {
+					"Ping": False,
+					"FPS": False,
+				},
+				"Server": {
+					"EventsPerMinute": False,
+					"Ping": False,
+					"ServerTime": False,
+					"HeartRate": False,
+					"Instances": False,
+					"MovingParts": False,
+					"Network": {
+						"Data": {
+							"Send": False,
+							"Receive": False,
+						},
+						"Physics": {
+							"Send": False,
+							"Receive": False,
+						},
+					},
+					"Memory": {
+						"Internal": False,
+						"HttpCache": False,
+						"Instances": False,
+						"Signals": False,
+						"LuaHeap": False,
+						"Script": False,
+						"PhysicsCollision": False,
+						"PhysicsParts": False,
+						"CSG": False,
+						"Particle": False,
+						"Part": False,
+						"MeshPart": False,
+						"SpatialHash": False,
+						"TerrainGraphics": False,
+						"Textures": False,
+						"CharacterTextures": False,
+						"SoundsData": False,
+						"SoundsStreaming": False,
+						"TerrainVoxels": False,
+						"Guis": False,
+						"Animations": False,
+						"Pathfinding": False,
+					},
+				},
+			},
+			"Spending": {
+				"Product": False,
+				"Gamepass": False,
+				"Total": False,
+			},
+			"Groups": {},
+			"Badges": {},
+			"Demographics": {
+				"AccountAge": False,
+				"RobloxLanguage": False,
+				"SystemLanguage": False,
+				"UserSettings": {
+					"Fullscreen": False,
+					"GamepadCameraSensitivity": False,
+					"MouseSensitivity": False,
+					"SavedQualityLevel": False,
+				},
+				"Platform": {
+					"Accelerometer": False,
+					"Gamepad": False,
+					"Gyroscope": False,
+					"Keyboard": False,
+					"Mouse": False,
+					"Touch": False,
+					"VR": False,
+					"ScreenSize": False,
+					"ScreenRatio": False,
+				},
+			},
+		},
+		"Event": {
+			"Interval": 15,
+			"Join": {
+				"Teleport": False,
+				"Enter": False,
+			},
+			"Chat": {
+				"Spoke": False,
+			},
+			"Character": {
+				"Died": False,
+			},
+			"Spending": {
+				"Purchase": {
+					"Product": False,
+					"Gamepass": False,
+				},
+			},
+			"Exit": {
+				"Quit": False,
+				"Disconnect": False,
+				"Close": False,
+			},
+		},
 	},
 	"build": {
 		"midas_package_rbx_path": "game/ReplicatedStorage/Packages/Midas",
@@ -169,165 +432,34 @@ def get_midas_config() -> MidasConfig:
 
 	untyped_config: Any = yaml.safe_load(open(CONFIG_TOML_PATH, "r").read())
 	midas_config: Any = untyped_config
+
+	for path, value in dpath.search(TEMPLATE_STATE_TYPE_TREE, '**', yielded=True):
+		status = dpath.get(midas_config["template"]["State"], path, default=None)
+		if status == None:
+			status = dpath.get(midas_config["template"]["Event"], path, default=None)
+		if (type(status) == bool and status == True) or type(status) == int:
+			dpath.new(midas_config["tree"], path, value)
 	
-	if midas_config["templates"]["chat"]:
-		midas_config["tree"]["Chat"] = {
-			"LastMessage": "string",
-			"Count": "integer",
-		}
+	for gamepass_name in midas_config["monetization"]["gamepasses"]:
+		formatted_pass_name = re.sub(r'\s', '', gamepass_name)
+		midas_config["tree"]["Spending"]["Gamepasses"][formatted_pass_name] = "boolean"
+		midas_config["tree"]["Spending"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
 
-	if midas_config["templates"]["character"]:
-		midas_config["tree"]["Character"] = {
-			"IsDead": "boolean",
-			"Height": "double",
-			"Mass": "double",
-			"State": [
-				"FallingDown", 
-				"Running", 
-				"RunningNoPhysics", 
-				"Climbing",
-				"StrafingNoPhysics",
-				"Ragdoll",
-				"GettingUp",
-				"Jumping",
-				"Landed",
-				"Flying",
-				"Freefall",
-				"Seated",
-				"PlatformStanding",
-				"Dead",
-				"Swimming",
-				"Physics",
-				"None"
-			],
-			"WalkSpeed": "double",
-			"Position": {
-				"X": "double",
-				"Y": "double",
-			},
-			"Altitude": "double",
-			"JumpPower": "double",
-			"Health": "double",
-			"MaxHealth": "double",
-			"Deaths": "integer",
-		}
+	for product_name in midas_config["monetization"]["products"]:
+		formatted_product_name = re.sub(r'\s', '', product_name)
+		midas_config["tree"]["Spending"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
 
-	if midas_config["templates"]["population"]:
-		midas_config["tree"]["Population"] = {
-			"Total": "integer",
-			"Team": "integer",
-			"PeakFriends": "integer",
-			"Friends": "integer",
-			"SpeakingDistance": "integer",
-		}
-
-	if midas_config["templates"]["server_performance"]:
-		if not "Performance" in midas_config["tree"]:
-			midas_config["tree"]["Performance"] = {}
-
-		midas_config["tree"]["Performance"]["Server"] = {
-			"EventsPerMinute": "integer",
-			"Ping": "integer",
-			"ServerTime": "integer",
-			"HeartRate": "integer",
-			"Instances": "integer",
-			"MovingParts": "integer",
-			"Network": {
-				"Data": {
-					"Send": "integer",
-					"Receive": "integer",
-				},
-				"Physics": {
-					"Send": "integer",
-					"Receive": "integer",
-				},
-				"Memory": {
-					"Internal": "integer",
-					"HttpCache": "integer",
-					"Instances": "integer",
-					"Signals": "integer",
-					"LuaHeap": "integer",
-					"Script": "integer",
-					"PhysicsCollision": "integer",
-					"PhysicsParts": "integer",
-					"CSG": "integer",
-					"Particle": "integer",
-					"Part": "integer",
-					"MeshPart": "integer",
-					"SpatialHash": "integer",
-					"TerrainGraphics": "integer",
-					"Textures": "integer",
-					"CharacterTextures": "integer",
-					"SoundsData": "integer",
-					"SoundsStreaming": "integer",
-					"TerrainVoxels": "integer",
-					"Guis": "integer",
-					"Animations": "integer",
-					"Pathfinding": "integer",
-				},
-			},
-		}
-
-	if midas_config["templates"]["market"]:
-		midas_config["tree"]["Market"] = {
-			"Spending": {
-				"Gamepass": "integer",
-				"Product": "integer",
-				"Total": "integer",
-			},
-			"Gamepasses": {},
-			"Purchase": {
-				"Product": {
-					"Name": [],
-					"Price": "integer"
-				},
-				"Gamepass": {
-					"Name": [],
-					"Price": "integer"
-				}
-			},
-		}
-		for gamepass_name in midas_config["monetization"]["gamepasses"]:
-			formatted_pass_name = re.sub(r'\s', '', gamepass_name)
-			midas_config["tree"]["Market"]["Gamepasses"][formatted_pass_name] = "boolean"
-			midas_config["tree"]["Market"]["Purchase"]["Gamepass"]["Name"].append(formatted_pass_name)
-
-		for product_name in midas_config["monetization"]["products"]:
-			formatted_product_name = re.sub(r'\s', '', product_name)
-			midas_config["tree"]["Market"]["Purchase"]["Product"]["Name"].append(formatted_product_name)
-
-	if len(list(midas_config["templates"]["group"].keys())) > 0:
+	if len(list(midas_config["template"]["State"]["Groups"].keys())) > 0:
 		midas_config["tree"]["Groups"] = {}
-		for group_name, group_id in (midas_config["templates"]["group"]).items():
+		for group_name, group_id in (midas_config["template"]["State"]["Groups"]).items():
 			formatted_group_name = re.sub(r'\s', '', group_name)
-			midas_config["tree"]["Groups"][formatted_group_name] = "boolean"
+			midas_config["tree"]["Groups"][formatted_group_name] = "integer"
 
-	if midas_config["templates"]["demographics"]:
-		midas_config["tree"]["Demographics"] = {
-			"AccountAge": "integer",
-			"RobloxLangugage": "string",
-			"SystemLanguage": "string",
-			"Platform": {
-				"Accelerometer": "boolean",
-				"Gamepad": "boolean",
-				"Gyroscope": "boolean",
-				"Keyboard": "boolean",
-				"Mouse": "boolean",
-				"Touch": "boolean",
-				"ScreenSize": "integer",
-				"ScreenRatio": ["16:10","16:9","5:4","5:3","3:2","4:3","9:16","uncommon"],
-			},
-		}
-
-	if midas_config["templates"]["client_performance"]:
-		if not "Performance" in midas_config["tree"]:
-			midas_config["tree"]["Performance"] = {}
-
-		midas_config["tree"]["Performance"]["Client"] = {
-			"Ping": "integer",
-			"FPS": "integer",
-		}
-
+	if len(list(midas_config["template"]["State"]["Badges"].keys())) > 0:
+		midas_config["tree"]["Badges"] = {}
+		for badge_name, group_id in (midas_config["template"]["State"]["Badges"]).items():
+			formatted_badge_name = re.sub(r'\s', '', badge_name)
+			midas_config["tree"]["Badges"][formatted_badge_name] = "boolean"
 
 	return midas_config
 

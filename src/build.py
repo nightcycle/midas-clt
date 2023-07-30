@@ -249,19 +249,7 @@ def build_server_boot():
 		"SendDeltaState": False,
 		"PrintLog": False,
 		"SendDataToPlayFab": True,
-		"Templates": {
-			"Join": True,
-			"Chat": midas_config["templates"]["chat"],
-			"Population": midas_config["templates"]["population"],
-			"ServerPerformance": midas_config["templates"]["server_performance"],
-			"Market": midas_config["templates"]["market"],
-			"Exit": True,
-			"Character": midas_config["templates"]["character"],
-			"Player": False,
-			"Demographics": midas_config["templates"]["demographics"],
-			"ClientPerformance": midas_config["templates"]["client_performance"],
-			"Group": midas_config["templates"]["group"],
-		},
+		"Template": midas_config["template"],
 	}
 
 	if "hotfix" in midas_config["version"]:
