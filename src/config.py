@@ -224,7 +224,6 @@ TEMPLATE_STATE_TYPE_TREE = {
 			"en-uk",
 		],
 		"UserSettings": {
-			"Fullscreen": "boolean",
 			"GamepadCameraSensitivity": "double",
 			"MouseSensitivity": "double",
 			"SavedQualityLevel": "integer",
@@ -336,7 +335,6 @@ DEFAULT_CONFIG_TEMPLATE: MidasConfig = {
 				"RobloxLanguage": False,
 				"SystemLanguage": False,
 				"UserSettings": {
-					"Fullscreen": False,
 					"GamepadCameraSensitivity": False,
 					"MouseSensitivity": False,
 					"SavedQualityLevel": False,
